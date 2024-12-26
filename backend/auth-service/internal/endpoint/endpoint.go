@@ -24,7 +24,6 @@ func (e *Endpoint) Start(port string) {
 func SetupHandlers(e *Endpoint) {
 	e.echo.GET("/new", e.NewTokens)
 	e.echo.POST("/verify", e.VerifyToken)
-	e.echo.POST("/generate", e.GenerateNewTokens)
 }
 
 func New(secret []byte) *Endpoint {
@@ -35,21 +34,24 @@ func New(secret []byte) *Endpoint {
 }
 
 func (e *Endpoint) NewTokens(c echo.Context) error {
-	tokens, err := e.s.NewTokens(c.QueryParam("id"))
+	tokens, err := e.s.NewTokens(c.QueryParam("id"), c.QueryParam("role"))
 	if err != nil {
 		c.Logger().Printf("failed to create new tokens: %v \n", err)
+		return c.String(http.StatusBadRequest, err.Error())
 	}
 	return c.JSON(http.StatusOK, tokens)
 }
 
 func (e *Endpoint) VerifyToken(c echo.Context) error {
-	tokens := model.Tokens{}
-	err := json.NewDecoder(c.Request().Body).Decode(&tokens)
+	data := struct {
+		Token string `json:"token"`
+	}{}
+	err := json.NewDecoder(c.Request().Body).Decode(&data)
 	if err != nil {
 		c.Logger().Printf("failed to parse request body : %v \n", err)
 		return c.String(http.StatusBadRequest, "failed to parse request body")
 	}
-	id, err := e.s.Verify(tokens.Access)
+	id, role, err := e.s.Verify(data.Token)
 	if errors.Is(err, jwt.ErrTokenExpired) {
 		return c.String(http.StatusUnauthorized, "tokens expired")
 	}
@@ -57,11 +59,7 @@ func (e *Endpoint) VerifyToken(c echo.Context) error {
 		return c.String(http.StatusNotAcceptable, "token modified")
 	}
 	if err == nil {
-		return c.JSON(http.StatusOK, model.VerificationResponse{Id: id})
+		return c.JSON(http.StatusOK, model.VerificationResponse{Id: id, Role: role})
 	}
 	return c.String(http.StatusBadRequest, err.Error())
-}
-
-func (s Endpoint) GenerateNewTokens(c echo.Context) error {
-	return c.String(http.StatusNotImplemented, "")
 }

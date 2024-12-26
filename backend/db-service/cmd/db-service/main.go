@@ -1,14 +1,12 @@
 package main
 
 import (
-	"log"
-
-	"github.com/joho/godotenv"
+	"auth-service/pkg/handler"
+	"os"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal(err)
-	}
+	h := handler.New(os.Getenv("CONN_URL"))
+
+	h.Start(os.Getenv("PORT"))
 }

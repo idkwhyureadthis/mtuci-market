@@ -1,15 +1,14 @@
 -- +goose Up
-CREATE TYPE user_role AS ENUM('user', 'moderator', 'admin');
-
 CREATE TABLE users(
-    id INTEGER PRIMARY KEY,
+    id SERIAL PRIMARY KEY,
+    login TEXT UNIQUE NOT NULL,
     name TEXT NOT NULL,
-    email TEXT NOT NULL,
-    about TEXT,
+    crypted_password TEXT NOT NULL,
+    telegram_id TEXT NOT NULL,
     crypted_refresh TEXT,
-    room INTEGER NOT NULL,
-    dorm_number INTEGER
-    role user_role,
+    room TEXt NOT NULL,
+    dorm_number TEXT,
+    role TEXT
 );
 
 -- +goose Down

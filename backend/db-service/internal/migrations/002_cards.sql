@@ -1,14 +1,12 @@
---+goose Up
-CREATE TYPE card_state AS ENUM('accepted', 'on_moderation', 'rejected', 'sold');
-
+-- +goose Up
 CREATE TABLE cards(
-    id INTEGER PRIMARY KEY,
-    created_by INTEGER REFERENCES users(id),
+    id SERIAL PRIMARY KEY,
+    created_by INTEGER REFERENCES users(id) ON DELETE CASCADE,
     name TEXT NOT NULL,
-    card_status card_state,
+    description TEXT NOT NULL,
+    card_status TEXT,
     price FLOAT
 );
 
 -- +goose Down
 DROP TABLE cards;
-DROP TYPE card_state;
